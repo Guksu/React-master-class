@@ -1,32 +1,47 @@
 import ToDoList from "./components/TodoList";
-import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  DropResult,
+} from "react-beautiful-dnd";
+import { useState } from "react";
+
+// useMemo는 prop이 변경될 경우만 랜더링을 하게 해준다.
+// 따라서 dragDrop을 사용할 시 따로 분리하여 export default React.memo(함수명)을 사용하여
+// 바뀌는 부분만 랜더링을 하는것이 좋다.
 
 function App() {
-  const onDragEnd = () => {};
+  const [ex, setEx] = useState(["one", "two", "three", "four", "five"]);
+  const onDragEnd = ({ draggableId, destination, source }: DropResult) => {
+    if (!destination) return;
+
+    setEx((ex) => {
+      const copyEx = [...ex];
+      copyEx.splice(source.index, 1);
+      copyEx.splice(destination?.index, 0, draggableId);
+      return copyEx;
+    });
+  };
   return (
     <>
       <DragDropContext onDragEnd={onDragEnd}>
         <div>
           {/* droppable의 children은 함수형식이어야 한다 */}
-          <Droppable droppableId="1">
+          <Droppable droppableId="one">
             {(provide) => (
               <ul ref={provide.innerRef} {...provide.droppableProps}>
-                <Draggable draggableId="first" index={0}>
-                  {(provide) => (
-                    <li ref={provide.innerRef} {...provide.draggableProps}>
-                      <span {...provide.dragHandleProps}>☝</span>
-                      one
-                    </li>
-                  )}
-                </Draggable>
-                <Draggable draggableId="second" index={1}>
-                  {(provide) => (
-                    <li ref={provide.innerRef} {...provide.draggableProps}>
-                      <span {...provide.dragHandleProps}>☝</span>
-                      two
-                    </li>
-                  )}
-                </Draggable>
+                {ex.map((toDo, index) => (
+                  // dragable에서 key와 id는 같아야한다
+                  <Draggable key={toDo} draggableId={toDo} index={index}>
+                    {(provide) => (
+                      <li ref={provide.innerRef} {...provide.draggableProps}>
+                        <span {...provide.dragHandleProps}>☝</span>
+                        {toDo}
+                      </li>
+                    )}
+                  </Draggable>
+                ))}
               </ul>
             )}
           </Droppable>
